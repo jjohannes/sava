@@ -13,15 +13,22 @@ tasks.test {
   }
 }
 
-dependencies {
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
+val projectHasTests = project.layout.projectDirectory.dir("src/test/java").asFile.isDirectory
 
-// access catalog for junit version
-// https://github.com/gradle/gradle/issues/15383
-configurations.testImplementation {
-  withDependencies {
-    val libs = the<VersionCatalogsExtension>().named("libs")
-    add(libs.findLibrary("junit-jupiter").get().get())
+if (projectHasTests) {
+  dependencies {
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  }
+
+  // access catalog for junit version
+  // https://github.com/gradle/gradle/issues/15383
+  configurations.testImplementation {
+    withDependencies {
+      val libs = the<VersionCatalogsExtension>().named("libs")
+      val junitVersion = libs.findLibrary("junit-jupiter").get().get().version
+      // TODO jupiter-api should be in catalog
+      add(project.dependencies.create("org.junit.jupiter:junit-jupiter-api:$junitVersion"))
+    }
   }
 }
